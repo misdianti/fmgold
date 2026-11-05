@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harga Emas Harian | FM Gold</title>
+<style>
+:root{--bg:#faf7f0;--card:#fff;--ink:#2b2418;--mute:#7a6f5c;--line:#eadfc6;--gold:#b8860b;--up:#16794c;--down:#b42318;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17130c;--card:#211b11;--ink:#f3ead6;--mute:#a99d84;--line:#3a3120;--gold:#e0b64a;--up:#4ade80;--down:#f87171;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.4rem;margin:0}
+.sub{color:var(--mute);font-size:.9rem;margin:4px 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.hero .lbl{color:var(--mute);font-size:.85rem}
+.hero .big{font-size:2.1rem;font-weight:700;color:var(--gold);letter-spacing:-.5px}
+.chg{font-size:.95rem;font-weight:600}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--mute)}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.78rem;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+td:first-child{font-weight:600}
+tr:last-child td{border-bottom:0}
+svg{width:100%;height:90px;display:block}
+.note{color:var(--mute);font-size:.8rem}
+#empty{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Harga Emas Batangan Hari Ini</h1>
+<p class="sub" id="sub">Memuat data...</p>
+
+<div id="empty" class="card">Data belum tersedia. Jalankan <code>python scrape.py</code> atau workflow GitHub Actions satu kali untuk mengisi <code>data/prices.json</code>.</div>
+
+<div id="content" style="display:none">
+  <div class="card hero">
+    <div class="lbl">Harga dasar 1 gram</div>
+    <div class="big" id="h1g"></div>
+    <div class="chg" id="h1c"></div>
+    <svg id="spark" viewBox="0 0 300 90" preserveAspectRatio="none" aria-label="Tren 30 hari harga 1 gram"></svg>
+    <div class="note" id="sparkNote"></div>
+  </div>
+  <div class="card wrap">
+    <table>
+      <thead><tr><th>Berat</th><th>Harga dasar</th><th>Per gram</th><th>vs kemarin</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="note">Sumber: logammulia.com (harga dasar, belum termasuk pajak PPh 0,25%). Data diperbarui otomatis setiap hari dan bisa terlambat dari situs resmi. Cek logammulia.com sebelum bertransaksi.</p>
+</div>
+</main>
+<script>
+const rp = n => "Rp" + Math.round(n).toLocaleString("id-ID");
+const WEIGHTS = ["1","2","3","5","10","25","50"];
+function chg(cur, prev){
+  if(prev == null) return {t:"-", c:"flat"};
+  const d = cur - prev;
+  if(d === 0) return {t:"tetap", c:"flat"};
+  const pct = (d/prev*100).toFixed(2).replace(".", ",");
+  return {t:(d>0?"▲ ":"▼ ") + rp(Math.abs(d)) + " (" + pct + "%)", c:d>0?"up":"down"};
+}
+function spark(vals){
+  if(vals.length < 2){ return ""; }
+  const min=Math.min(...vals), max=Math.max(...vals), rng=(max-min)||1;
+  const pts = vals.map((v,i)=> (i/(vals.length-1)*300).toFixed(1)+","+(80-((v-min)/rng)*70).toFixed(1)).join(" ");
+  return '<polyline fill="none" stroke="var(--gold)" stroke-width="2.5" vector-effect="non-scaling-stroke" points="'+pts+'"/>';
+}
+async function load(){
+  let data;
+  try{
+    const r = await fetch("data/prices.json?v=" + Date.now(), {cache:"no-store"});
+    data = await r.json();
+  }catch(e){ data = null; }
+  const h = data && data.history ? data.history : [];
+  if(!h.length){
+    document.getElementById("sub").textContent = "";
+    document.getElementById("empty").style.display = "block";
+    return;
+  }
+  const cur = h[h.length-1], prev = h.length>1 ? h[h.length-2] : null;
+  const tgl = new Date(cur.date + "T00:00:00+07:00").toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  document.getElementById("sub").textContent = tgl + " | Diperbarui " + (data.updated||"").replace("T"," ").slice(0,16) + " WIB";
+  document.getElementById("h1g").textContent = rp(cur.prices["1"]);
+  const c1 = chg(cur.prices["1"], prev && prev.prices["1"]);
+  const e = document.getElementById("h1c"); e.textContent = c1.t + (prev ? " dibanding " + prev.date : ""); e.className = "chg " + c1.c;
+  const last30 = h.slice(-30).map(x=>x.prices["1"]);
+  document.getElementById("spark").innerHTML = spark(last30);
+  document.getElementById("sparkNote").textContent = last30.length > 1 ? "Tren " + last30.length + " hari terakhir" : "Grafik tampil setelah ada minimal 2 hari data";
+  document.getElementById("rows").innerHTML = WEIGHTS.map(w=>{
+    const p = cur.prices[w], c = chg(p, prev && prev.prices[w]);
+    return "<tr><td>"+w+" gram</td><td>"+rp(p)+"</td><td>"+rp(p/Number(w))+"</td><td class='"+c.c+"'>"+c.t+"</td></tr>";
+  }).join("");
+  document.getElementById("content").style.display = "block";
+}
+load();
+</script>
+</body>
+</html>
