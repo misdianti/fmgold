@@ -1,1 +1,18 @@
-{"source":"https://logammulia.com/harga-emas","updated":null,"history":[]}
+{
+ "source": "https://logammulia.com/harga-emas",
+ "updated": "2026-11-06T13:30+07:00",
+ "history": [
+  {
+   "date": "2026-11-06",
+   "prices": {
+    "1": 2565000,
+    "2": 5070000,
+    "3": 7580000,
+    "5": 12600000,
+    "10": 25145000,
+    "25": 62737000,
+    "50": 125395000
+   }
+  }
+ ]
+}
