@@ -31,7 +31,10 @@ def fetch_html() -> str:
     except ImportError:
         raise SystemExit("playwright belum terpasang: pip3 install playwright && python3 -m playwright install chromium")
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=os.environ.get("HEADLESS") == "1")
+        browser = p.chromium.launch(
+            channel=os.environ.get("BROWSER_CHANNEL") or None,  # "chrome" = pakai Google Chrome bawaan server
+            headless=os.environ.get("HEADLESS") == "1",
+        )
         page = browser.new_page(locale="id-ID")
         page.goto(URL, wait_until="domcontentloaded", timeout=60000)
         try:
