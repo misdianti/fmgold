@@ -37,8 +37,10 @@ def fetch_html() -> str:
         try:
             page.wait_for_selector(ROW_SELECTOR, timeout=45000)
         except Exception:
+            title = page.title()
+            body = page.inner_text("body")[:300].replace("\n", " ")
             browser.close()
-            raise SystemExit("Baris harga tidak muncul dalam 45 detik (halaman diblokir atau struktur berubah)")
+            raise SystemExit(f"Baris harga tidak muncul dalam 45 detik. TITLE={title!r} BODY={body!r}")
         page.wait_for_timeout(1500)
         html = page.content()
         browser.close()
