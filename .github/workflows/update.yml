@@ -2,6 +2,7 @@ name: Update harga emas
 on:
   schedule:
     - cron: "0 2 * * *"
+    - cron: "0 6 * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,8 +14,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests beautifulsoup4 playwright && playwright install --with-deps chromium
-      - run: python scrape.py
+      - run: pip install beautifulsoup4 playwright
+      - run: playwright install --with-deps chromium
+      - run: sudo apt-get install -y xvfb
+      - name: Scrape (browser dengan layar virtual)
+        run: xvfb-run -a python scrape.py
       - name: Commit data
         run: |
           git config user.name "gold-bot"
