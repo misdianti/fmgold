@@ -1,1 +1,18 @@
-{"source":"https://galeri24.co.id/harga-emas","updated":null,"history":[]}
+{
+ "source": "https://galeri24.co.id/harga-emas",
+ "updated": "2026-11-06T14:36+07:00",
+ "history": [
+  {
+   "date": "2026-11-06",
+   "prices": {
+    "1": 2507000,
+    "2": 4953000,
+    "5": 12291000,
+    "10": 24517000,
+    "25": 60962000,
+    "50": 121827000
+   },
+   "source_date": "2026-11-06"
+  }
+ ]
+}
