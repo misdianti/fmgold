@@ -1,8 +1,8 @@
 name: Update harga emas
 on:
   schedule:
-    - cron: "0 2 * * *"
-    - cron: "0 6 * * *"
+    - cron: "0 2 * * *"   # 09:00 WIB
+    - cron: "0 6 * * *"   # 13:00 WIB
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,13 +15,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install beautifulsoup4 playwright
-      - run: playwright install --with-deps chromium
       - run: sudo apt-get install -y xvfb
-      - name: Scrape (browser dengan layar virtual)
+      - name: Scrape (Google Chrome bawaan + layar virtual)
+        env:
+          BROWSER_CHANNEL: chrome
         run: xvfb-run -a python scrape.py
       - name: Commit data
         run: |
           git config user.name "gold-bot"
           git config user.email "gold-bot@users.noreply.github.com"
-          git add data/prices.json
+          git add data/*.json
           git diff --staged --quiet || (git commit -m "Update harga emas" && git push)
