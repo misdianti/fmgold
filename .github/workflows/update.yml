@@ -1,14 +1,20 @@
 name: Update harga emas
 on:
   schedule:
-    - cron: "0 2 * * *"   # 09:00 WIB
+    - cron: "17 2 * * *"   # 09:17 WIB
+    - cron: "43 6 * * *"   # 13:43 WIB
   workflow_dispatch:
+concurrency:
+  group: update-harga
+  cancel-in-progress: false
 permissions:
   contents: write
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      - name: Catat pemicu dan waktu mulai
+        run: echo "event=${{ github.event_name }} jadwal='${{ github.event.schedule }}' mulai=$(date -u +%FT%TZ)"
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
